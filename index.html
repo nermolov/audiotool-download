@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Audiotool Download</title>
+  <style>
+  body {
+    margin: 0;
+    padding: 20px;
+    background: #efefef;
+    color: #333;
+  }
+  #wrapper {
+    margin: 20px auto 20px auto;
+    width: 600px;
+    background: #fff;
+    padding: 40px;
+    border: 1px solid #fff;
+    border-radius: 10px;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    box-shadow: 0 0 2px #999;
+    -webkit-box-shadow: 0 0 3px #999;
+  }
+  a img {
+    border: 0;
+  }
+  body, th, td, input {
+    font: 13px/17px "Lucida Grande", "Lucida Sans Unicode", Arial, Verdana, sans-serif;
+  }
+  a:link, a:visited {
+    color: #00688f;
+    text-decoration: underline;
+  }
+  a:hover, a:active {
+    color: #000;
+    border: 0;
+  }
+  h1 {
+    font: 170% "Trebuchet MS", Georgia, serif;
+    font-weight: bold;
+    color: #00428d;
+    margin: 15px 0 5px 0;
+  }
+  h2 {
+    font: 130% "Trebuchet MS", Georgia, serif;
+    font-weight: bold;
+    color: #59006c;
+    margin: 50px 0 5px 0;
+    padding: 0 0 3px 0;
+    border-bottom: 1px solid #ccc;
+  }
+  h3 {
+    font: 110% "Trebuchet MS", Georgia, serif;
+    font-weight: bold;
+    color: #db0048;
+    margin: 30px 0 0 0;
+    padding: 0;
+  	color: #999;
+  	text-transform: uppercase;
+  }
+  .warning {
+    background: #fffedf;
+    padding: 8px;
+    border: 1px dashed #ccc;
+    border-radius: 4px;
+    -moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+    font-size: 90%;
+  }
+  .optional {
+    background: none repeat scroll 0 0 #FFE081;
+    border-radius: 3px 3px 3px 3px;
+    font-size: 80%;
+  	font-weight: normal;
+    padding: 1px 4px;
+  }
+  .subtle {
+    color: #999;
+  }
+  #inputs {
+    text-align: center;
+  }
+  </style>
+</head>
+<body>
+<div id="wrapper">
+<h1>Audiotool Charts Download</h1>
+<h2>Download the charts or an album</h2>
+<div id="inputs">
+<button onclick="albumget('charts');">Download Charts</button>
+<input type="text" placeholder="Album url" id="aurl">
+<button onclick="albumget();">Download Album</button><br />
+<input type="checkbox" id="mstate">Include m3u playlist file
+</div>
+<p class="subtle">Made by nermolov (Flux)</p>
+</div>
+<div style="display: none;" id="hidden"></div>
+<script>
+function albumget(ayy) {
+  var aurl;
+  if (ayy == 'charts') {
+    aurl = 'https://www.audiotool.com/';
+  } else {
+    aurl = document.getElementById('aurl').value;
+  }
+  var mstate;
+  if (document.getElementById('mstate').checked) {
+    mstate = true;
+  }
+  var xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if (xhttp.readyState == 4 && xhttp.status == 200) {
+      console.log(xhttp.responseText);
+      var rjson = JSON.parse(xhttp.responseText);
+      var count = 0;
+      for (var k in rjson) {
+        if (rjson.hasOwnProperty(k)) {
+          count++;
+        }
+      }
+      for (var i in rjson) {
+        downloadFile(rjson[i]);
+        if (mstate === true && i >= count - 3) {
+          break;
+        }
+      }
+      if (mstate === true) {
+        document.getElementById('hidden').innerHTML = '<a id="playlist" href="data:application/octet-stream;charset=utf-8;base64,' + rjson['m3u8'] + '" download="' + rjson['title'] + '.m3u"></a>';
+        document.getElementById('playlist').click();
+      }
+      document.getElementById('inputs').innerHTML = 'Done! Downloading...';
+    }
+  };
+  xhttp.open("POST", "audiotool.php?album", true);
+  xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+  if (document.getElementById('mstate').checked) {
+    xhttp.send('url=' + aurl + '&mstate=true');
+  } else {
+    xhttp.send('url=' + aurl);
+  }
+  document.getElementById('inputs').innerHTML = 'Working... Please wait, this may take a while (especially with large albums + m3u generation)';
+}
+window.downloadFile = function (sUrl) {
+    //iOS devices do not support downloading. We have to inform user about this.
+    if (/(iP)/g.test(navigator.userAgent)) {
+        alert('Your device do not support files downloading. Please try again in desktop browser.');
+        return false;
+    }
+    //If in Chrome or Safari - download via virtual link click
+    if (window.downloadFile.isChrome || window.downloadFile.isSafari) {
+        //Creating new link node.
+        var link = document.createElement('a');
+        link.href = sUrl;
+        if (link.download !== undefined) {
+            //Set HTML5 download attribute. This will prevent file from opening if supported.
+            var fileName = sUrl.substring(sUrl.lastIndexOf('/') + 1, sUrl.length);
+            link.download = fileName;
+        }
+        //Dispatching click event.
+        if (document.createEvent) {
+            var e = document.createEvent('MouseEvents');
+            e.initEvent('click', true, true);
+            link.dispatchEvent(e);
+            return true;
+        }
+    }
+    // Force file download (whether supported by server).
+    var query = '?download';
+    window.open(sUrl + query, '_self');
+};
+window.downloadFile.isChrome = navigator.userAgent.toLowerCase().indexOf('chrome') > -1;
+window.downloadFile.isSafari = navigator.userAgent.toLowerCase().indexOf('safari') > -1;
+</script>
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-53474912-7', 'auto');
+  ga('send', 'pageview');
+
+</script>
+</body>
+</html>
